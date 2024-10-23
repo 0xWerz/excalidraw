@@ -545,7 +545,7 @@ const ExcalidrawWrapper = () => {
             justifyContent: "center",
           }}
         >
-          <SwatchBook size={18} opacity={1} />
+          <SwatchBook size={18} opacity={0.7} />
         </button>
         {isVisible && (
           <div
@@ -593,7 +593,8 @@ const ExcalidrawWrapper = () => {
                       autoFocus
                       style={{
                         width: "100%",
-                        background: editorTheme === "light" ? "#ECECF4" : "#3a3a3f",
+                        background:
+                          editorTheme === "light" ? "#ECECF4" : "#3a3a3f",
                         color: editorTheme === "light" ? "#232329" : "white",
                         border: "1px solid #555",
                         borderRadius: "4px",
@@ -607,8 +608,12 @@ const ExcalidrawWrapper = () => {
                         padding: "5px 10px",
                         background:
                           localStorage.getItem("canvasId") === scene.id
-                            ? editorTheme === "light" ? "#ECECF4" : "#3a3a3f"
-                            : editorTheme === "light" ? "#FFFFFF" : "#232329",
+                            ? editorTheme === "light"
+                              ? "#ECECF4"
+                              : "#3a3a3f"
+                            : editorTheme === "light"
+                            ? "#FFFFFF"
+                            : "#232329",
                         border: "1px solid #555",
                         borderRadius: "4px",
                         cursor: "pointer",
