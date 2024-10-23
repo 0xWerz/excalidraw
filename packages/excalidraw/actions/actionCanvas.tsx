@@ -18,7 +18,7 @@ import {
   ZOOM_STEP,
 } from "../constants";
 import { getCommonBounds, getNonDeletedElements } from "../element";
-import type { ExcalidrawElement } from "../element/types";
+import type { CanvasScene, ExcalidrawElement } from "../element/types";
 import { t } from "../i18n";
 import { CODES, KEYS } from "../keys";
 import { getNormalizedZoom } from "../scene";
@@ -553,4 +553,90 @@ export const actionToggleHandTool = register({
   },
   keyTest: (event) =>
     !event.altKey && !event[KEYS.CTRL_OR_CMD] && event.key === KEYS.H,
+});
+
+export const actionNewCanvas = register({
+  name: "newCanvas",
+  label: "buttons.newCanvas",
+  trackEvent: { category: "canvas", action: "new" },
+  // predicate: (elements, appState, props, app) => {
+  //   return (
+  //     !!app.props.UIOptions.canvasActions.clearCanvas &&
+  //     !appState.viewModeEnabled
+  //   );
+  // },
+  // predicate is to check if the action is enabled
+  perform: async (elements, appState, value, app) => {
+    console.log("Elements :", elements);
+    console.log("AppState :", appState);
+    const currentCanvasId = localStorage.getItem("canvasId");
+    let storage: CanvasScene | null = null;
+    storage = JSON.parse(localStorage.getItem("excalidraw") || "{}");
+    let newScene: CanvasScene["scenes"][0] | null = null;
+    try {
+      if (elements.length > 0) {
+        const shouldSave = window.confirm(
+          "Do you want to save the current canvas?",
+        );
+        if (shouldSave) {
+          const canvasName =
+            prompt("Enter a name for the canvas") || "Untitled";
+          const newId = Math.random().toString(36).slice(2, 11);
+
+          if (storage && Array.isArray(storage.scenes)) {
+            const currentScene = storage.scenes.find(
+              (scene) => scene.id === currentCanvasId,
+            );
+            if (currentScene) {
+              // Save the current scene with new name and ID
+              const savedScene = {
+                ...currentScene,
+                name: canvasName,
+                id: newId,
+                elements: elements,
+              };
+              storage.scenes = storage.scenes.filter(
+                (scene) => scene.id !== currentCanvasId,
+              );
+              storage.scenes.push(savedScene);
+            }
+          }
+        }
+        // Create a new scene
+        const newSceneId = Math.random().toString(36).slice(2, 11);
+        newScene = {
+          id: newSceneId,
+          name: "Untitled",
+          elements: [],
+        };
+
+        // Update storage with the new scene
+        if (!storage) {
+          storage = { scenes: [] };
+        }
+        storage.scenes.push(newScene);
+
+        // Update localStorage
+        localStorage.setItem("excalidraw", JSON.stringify(storage));
+        localStorage.setItem("canvasId", newSceneId);
+
+        console.log("New canvas created with ID:", newSceneId);
+      }
+
+      return {
+        elements: newScene?.elements || [],
+        storeAction: StoreAction.UPDATE,
+      };
+    } catch (error: any) {
+      if (error?.name !== "AbortError") {
+        console.error(error);
+      } else {
+        console.warn(error);
+      }
+      console.log("Error in New Canvas", error);
+      return { storeAction: StoreAction.NONE };
+    }
+  },
+  keyTest: (event) =>
+    event[KEYS.CTRL_OR_CMD] && event.altKey && event.key === KEYS.N,
 });

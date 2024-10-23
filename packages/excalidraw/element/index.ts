@@ -2,6 +2,7 @@ import type {
   ExcalidrawElement,
   NonDeletedExcalidrawElement,
   NonDeleted,
+  CanvasScene,
 } from "./types";
 import { isInvisiblySmallElement } from "./sizeHelpers";
 import { isLinearElementType } from "./typeChecks";

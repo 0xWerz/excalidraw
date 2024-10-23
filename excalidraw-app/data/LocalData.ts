@@ -28,6 +28,7 @@ import type { LibraryPersistedData } from "../../packages/excalidraw/data/librar
 import type { ImportedDataState } from "../../packages/excalidraw/data/types";
 import { clearElementsForLocalStorage } from "../../packages/excalidraw/element";
 import type {
+  CanvasScene,
   ExcalidrawElement,
   FileId,
 } from "../../packages/excalidraw/element/types";
@@ -79,9 +80,33 @@ const saveDataStateToLocalStorage = (
       _appState.openSidebar = null;
     }
 
+    const currentCanvasId = localStorage.getItem("canvasId") || "123";
+    let storage: CanvasScene = JSON.parse(
+      localStorage.getItem("excalidraw") || '{"scenes": []}',
+    );
+
+    const currentSceneIndex = storage.scenes.findIndex(
+      (scene) => scene.id === currentCanvasId,
+    );
+
+    if (currentSceneIndex !== -1) {
+      // Update existing scene
+      storage.scenes[currentSceneIndex] = {
+        ...storage.scenes[currentSceneIndex],
+        elements: elements as unknown as ExcalidrawElement[],
+      };
+    } else {
+      // Add new scene
+      storage.scenes.push({
+        id: currentCanvasId,
+        name: "Scene " + (storage.scenes.length + 1),
+        elements: elements as unknown as ExcalidrawElement[],
+      });
+    }
+
     localStorage.setItem(
       STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS,
-      JSON.stringify(clearElementsForLocalStorage(elements)),
+      JSON.stringify(storage),
     );
     localStorage.setItem(
       STORAGE_KEYS.LOCAL_STORAGE_APP_STATE,
@@ -100,10 +125,13 @@ export class LocalData {
   private static _save = debounce(
     async (
       elements: readonly ExcalidrawElement[],
+      // elements: readonly CanvasScene,
       appState: AppState,
       files: BinaryFiles,
       onFilesSaved: () => void,
     ) => {
+      const canvasId = localStorage.getItem("canvasId");
+      console.log("Saving data for: ", canvasId);
       saveDataStateToLocalStorage(elements, appState);
 
       await this.fileStorage.saveFiles({

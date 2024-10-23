@@ -217,9 +217,9 @@ export const actionSaveFileToDisk = register({
       };
     } catch (error: any) {
       if (error?.name !== "AbortError") {
-        console.error(error);
+        console.error("Error saving file:", error);
       } else {
-        console.warn(error);
+        console.warn("Save operation aborted:", error);
       }
       return { storeAction: StoreAction.NONE };
     }

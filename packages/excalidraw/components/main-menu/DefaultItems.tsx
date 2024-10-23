@@ -14,6 +14,7 @@ import {
   HelpIcon,
   LoadIcon,
   MoonIcon,
+  newCanvasIcon,
   save,
   searchIcon,
   SunIcon,
@@ -26,6 +27,7 @@ import DropdownMenuItemLink from "../dropdownMenu/DropdownMenuItemLink";
 import {
   actionClearCanvas,
   actionLoadScene,
+  actionNewCanvas,
   actionSaveToActiveFile,
   actionShortcuts,
   actionToggleSearchMenu,
@@ -86,6 +88,22 @@ export const LoadScene = () => {
   );
 };
 LoadScene.displayName = "LoadScene";
+
+export const NewCanvas = () => {
+  const { t } = useI18n();
+  const actionManager = useExcalidrawActionManager();
+
+  return (
+    <DropdownMenuItem
+      shortcut={getShortcutFromShortcutName("newCanvas")}
+      data-testid="new-canvas-button"
+      onSelect={() => actionManager.executeAction(actionNewCanvas)}
+      icon={newCanvasIcon}
+      aria-label={`${t("buttons.newCanvas")}`}
+    >{`${t("buttons.newCanvas")}`}</DropdownMenuItem>
+  );
+};
+NewCanvas.displayName = "NewCanvas";
 
 export const SaveToActiveFile = () => {
   const { t } = useI18n();

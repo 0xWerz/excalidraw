@@ -212,6 +212,55 @@ export type ExcalidrawElement =
   | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement;
 
+export type CanvasScene = {
+  scenes: {
+    id: string;
+    name: string;
+    elements: ExcalidrawElement[];
+  }[];
+};
+
+// const workflowExample: CanvasScene = {
+//   scenes: [
+//     {
+//       id: "scene1",
+//       name: "Main Workflow",
+//       elements: [
+//         {
+//           id: "aWFbsLKsRQwLb8Igj8qDl",
+//           type: "ellipse",
+//           x: -925.1666666666661,
+//           y: -1250.7222222222226,
+//           width: 307,
+//           height: 319,
+//           angle: 0 as Radians,
+//           strokeColor: "#1e1e1e",
+//           backgroundColor: "transparent",
+//           fillStyle: "solid",
+//           strokeWidth: 2,
+//           strokeStyle: "solid",
+//           roughness: 1,
+//           opacity: 100,
+//           groupIds: [],
+//           frameId: null,
+//           index: "a0" as FractionalIndex,
+//           roundness: { type: 2 },
+//           seed: 2142721537,
+//           version: 24,
+//           versionNonce: 1452899457,
+//           isDeleted: false,
+//           boundElements: null,
+//           updated: 1729463011484,
+//           link: null,
+//           locked: false,
+//         },
+//       ],
+//     },
+//   ],
+// };
+
+// console.log(el);
+
 export type ExcalidrawNonSelectionElement = Exclude<
   ExcalidrawElement,
   ExcalidrawSelectionElement

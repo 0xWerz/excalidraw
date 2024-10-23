@@ -135,7 +135,8 @@ export type ActionName =
   | "autoResize"
   | "elementStats"
   | "searchMenu"
-  | "cropEditor";
+  | "cropEditor"
+  | "newCanvas";
 
 export type PanelComponentProps = {
   elements: readonly ExcalidrawElement[];

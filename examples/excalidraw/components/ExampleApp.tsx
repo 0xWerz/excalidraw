@@ -614,6 +614,7 @@ export default function ExampleApp({
   const renderMenu = () => {
     return (
       <MainMenu>
+        <MainMenu.DefaultItems.newCanvas />
         <MainMenu.DefaultItems.SaveAsImage />
         <MainMenu.DefaultItems.Export />
         <MainMenu.Separator />

@@ -28,6 +28,7 @@ export {
   actionResetZoom,
   actionZoomToFit,
   actionToggleTheme,
+  actionNewCanvas
 } from "./actionCanvas";
 
 export { actionFinalize } from "./actionFinalize";

@@ -247,6 +247,7 @@ export const loadScene = async (
   localDataState: ImportedDataState | undefined | null,
 ) => {
   let data;
+  console.log("Found Elements: ", localDataState?.elements);
   if (id != null && privateKey != null) {
     // the private key is used to decrypt the content from the server, take
     // extra care not to leak it

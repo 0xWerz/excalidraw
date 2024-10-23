@@ -110,6 +110,7 @@ export class GlobalTestState {
 
 const initLocalStorage = (data: ImportedDataState) => {
   if (data.elements) {
+    console.log("Init Local Storage: Elements...", data.elements);
     localStorage.setItem(
       STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS,
       JSON.stringify(data.elements),

@@ -1,4 +1,7 @@
-import type { ExcalidrawElement } from "../../packages/excalidraw/element/types";
+import type {
+  CanvasScene,
+  ExcalidrawElement,
+} from "../../packages/excalidraw/element/types";
 import type { AppState } from "../../packages/excalidraw/types";
 import {
   clearAppStateForLocalStorage,
@@ -36,24 +39,58 @@ export const importUsernameFromLocalStorage = (): string | null => {
 export const importFromLocalStorage = () => {
   let savedElements = null;
   let savedState = null;
+  let canvasId: string | null = null;
 
   try {
     savedElements = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS);
     savedState = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_APP_STATE);
+    canvasId = localStorage.getItem("canvasId");
+
+    if (!canvasId) {
+      localStorage.setItem("canvasId", "initial");
+    }
+
+    if (!savedElements) {
+      const initialScene: CanvasScene = {
+        scenes: [
+          {
+            id: "initial",
+            name: "Initial Scene",
+            elements: [],
+          },
+        ],
+      };
+      console.log("Initial Scene: ", JSON.stringify(initialScene));
+      localStorage.setItem(
+        STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS,
+        JSON.stringify(initialScene),
+      );
+      savedElements = JSON.stringify(initialScene);
+    }
+
+    if (!savedState) {
+      const initialState = getDefaultAppState();
+      localStorage.setItem(
+        STORAGE_KEYS.LOCAL_STORAGE_APP_STATE,
+        JSON.stringify(initialState),
+      );
+      savedState = JSON.stringify(initialState);
+    }
   } catch (error: any) {
     // Unable to access localStorage
+    console.log("Error accessing localStorage: ", error);
     console.error(error);
   }
 
-  let elements: ExcalidrawElement[] = [];
-  if (savedElements) {
-    try {
-      elements = clearElementsForLocalStorage(JSON.parse(savedElements));
-    } catch (error: any) {
-      console.error(error);
-      // Do nothing because elements array is already empty
-    }
-  }
+  const elements = JSON.parse(savedElements || "{}") as CanvasScene;
+
+  // const elements = clearElementsForLocalStorage(
+  //   JSON.parse(savedElements || "{}") as CanvasScene,
+  // ) as CanvasScene;
+  const currentScene = elements?.scenes.find((scene) => scene.id === canvasId);
+  const newElements = clearElementsForLocalStorage(
+    currentScene?.elements || [],
+  );
 
   let appState = null;
   if (savedState) {
@@ -69,7 +106,8 @@ export const importFromLocalStorage = () => {
       // Do nothing because appState is already null
     }
   }
-  return { elements, appState };
+  console.log("Exported Elements: ", newElements);
+  return { elements: newElements, appState };
 };
 
 export const getElementsStorageSize = () => {

@@ -13,6 +13,7 @@ import {
 } from "../packages/excalidraw/constants";
 import { loadFromBlob } from "../packages/excalidraw/data/blob";
 import type {
+  CanvasScene,
   FileId,
   NonDeletedExcalidrawElement,
   OrderedExcalidrawElement,
@@ -126,6 +127,7 @@ import DebugCanvas, {
   loadSavedDebugState,
 } from "./components/DebugCanvas";
 import { AIComponents } from "./components/AI";
+import { SwatchBook } from "lucide-react";
 
 polyfill();
 
@@ -207,7 +209,7 @@ const initializeScene = async (opts: {
   const externalUrlMatch = window.location.hash.match(/^#url=(.*)$/);
 
   const localDataState = importFromLocalStorage();
-
+  console.log("Loading Scene");
   let scene: RestoredDataState & {
     scrollToContent?: boolean;
   } = await loadScene(null, null, localDataState);
@@ -371,6 +373,300 @@ const ExcalidrawWrapper = () => {
 
   const [, forceRefresh] = useState(false);
 
+  const Canvases = () => {
+    const [scenes, setScenes] = useState<CanvasScene["scenes"]>([]);
+    const [editingSceneId, setEditingSceneId] = useState<string | null>(null);
+    const [editingSceneName, setEditingSceneName] = useState("");
+    const [isVisible, setIsVisible] = useState(false);
+    const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+      const storage = JSON.parse(
+        localStorage.getItem("excalidraw") || '{"scenes": []}',
+      ) as CanvasScene;
+      setScenes(storage.scenes || []);
+    }, []);
+
+    const updateScenes = (newScenes: CanvasScene["scenes"]) => {
+      setScenes(newScenes);
+      const storage = { scenes: newScenes };
+      localStorage.setItem("excalidraw", JSON.stringify(storage));
+    };
+
+    const saveCurrentScene = () => {
+      const currentCanvasId = localStorage.getItem("canvasId") || "123";
+      const currentElements = excalidrawAPI?.getSceneElements() || [];
+      const currentAppState = excalidrawAPI?.getAppState();
+
+      setScenes((prevScenes) => {
+        const updatedScenes = prevScenes.map((scene) =>
+          scene.id === currentCanvasId
+            ? { ...scene, elements: currentElements, appState: currentAppState }
+            : scene,
+        );
+        const storage = { scenes: updatedScenes };
+        localStorage.setItem("excalidraw", JSON.stringify(storage));
+        return updatedScenes;
+      });
+    };
+
+    const switchScene = (sceneId: string) => {
+      const currentCanvasId = localStorage.getItem("canvasId") || "123";
+      if (sceneId === currentCanvasId) {
+        return;
+      }
+      saveCurrentScene();
+      localStorage.setItem("canvasId", sceneId);
+      const scene = scenes.find((s) => s.id === sceneId);
+      if (scene) {
+        excalidrawAPI?.updateScene({
+          elements: scene.elements,
+          appState: excalidrawAPI.getAppState(),
+          // ...scene.appState,
+          // },
+          storeAction: StoreAction.UPDATE,
+        });
+      }
+    };
+
+    const deleteScene = () => {
+      const currentCanvasId = localStorage.getItem("canvasId") || "123";
+      const newScenes = scenes.filter((scene) => scene.id !== currentCanvasId);
+
+      if (newScenes.length > 0) {
+        const newCanvasId = newScenes[0].id;
+        switchScene(newCanvasId);
+      } else {
+        const newCanvasId = Date.now().toString();
+        newScenes.push({
+          id: newCanvasId,
+          name: "New Scene",
+          elements: [],
+        });
+        switchScene(newCanvasId);
+      }
+
+      updateScenes(newScenes);
+    };
+
+    const createNewScene = () => {
+      saveCurrentScene();
+
+      const newSceneId = Math.random().toString(36).slice(2, 11);
+      const newScene = {
+        id: newSceneId,
+        name: "Untitled",
+        elements: [],
+        appState: {
+          ...excalidrawAPI?.getAppState(),
+          viewBackgroundColor: "#ffffff",
+        },
+      };
+
+      setScenes((prevScenes) => [...prevScenes, newScene]);
+
+      localStorage.setItem("canvasId", newSceneId);
+      excalidrawAPI?.updateScene({
+        elements: [],
+        appState: {
+          ...excalidrawAPI.getAppState(),
+          viewBackgroundColor: "#ffffff",
+        },
+        storeAction: StoreAction.UPDATE,
+      });
+    };
+
+    const startEditingSceneName = (sceneId: string, currentName: string) => {
+      setEditingSceneId(sceneId);
+      setEditingSceneName(currentName);
+    };
+
+    const saveSceneName = () => {
+      if (editingSceneId) {
+        setScenes((prevScenes) =>
+          prevScenes.map((scene) =>
+            scene.id === editingSceneId
+              ? { ...scene, name: editingSceneName }
+              : scene,
+          ),
+        );
+        setEditingSceneId(null);
+      }
+    };
+
+    const resetTimeout = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setIsVisible(false);
+      }, 5000); // Hide after 5 seconds of inactivity
+    };
+
+    useEffect(() => {
+      resetTimeout();
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, [lastInteractionTime]);
+
+    const handleInteraction = () => {
+      setLastInteractionTime(Date.now());
+      setIsVisible(true);
+    };
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: "70px",
+          left: "15px",
+          zIndex: 3,
+        }}
+      >
+        <button
+          onClick={() => setIsVisible(!isVisible)}
+          style={{
+            background: "#232329",
+            color: "white",
+            border: "none",
+            borderRadius: "0.5rem",
+            padding: "10px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <SwatchBook size={18} opacity={0.7} />
+        </button>
+        {isVisible && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              background: "#232329",
+              padding: "10px",
+              borderRadius: "8px",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+              marginTop: "10px",
+              color: "white",
+              width: "200px",
+            }}
+            onMouseEnter={handleInteraction}
+            onMouseMove={handleInteraction}
+            onClick={handleInteraction}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "10px",
+              }}
+            >
+              {scenes.map((scene) => (
+                <div
+                  key={scene.id}
+                  style={{
+                    margin: "5px 0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {editingSceneId === scene.id ? (
+                    <input
+                      value={editingSceneName}
+                      onChange={(e) => setEditingSceneName(e.target.value)}
+                      onBlur={saveSceneName}
+                      onKeyPress={(e) => e.key === "Enter" && saveSceneName()}
+                      autoFocus
+                      style={{
+                        width: "100%",
+                        background: "#3a3a3f",
+                        color: "white",
+                        border: "1px solid #555",
+                        borderRadius: "4px",
+                        padding: "5px",
+                      }}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => switchScene(scene.id)}
+                      style={{
+                        padding: "5px 10px",
+                        background:
+                          localStorage.getItem("canvasId") === scene.id
+                            ? "#3a3a3f"
+                            : "#232329",
+                        border: "1px solid #555",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        color: "white",
+                        width: "100%",
+                        textAlign: "left",
+                      }}
+                    >
+                      {scene.name}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startEditingSceneName(scene.id, scene.name)}
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      background: "none",
+                      border: "none",
+                      color: "white",
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <button
+                onClick={createNewScene}
+                style={{
+                  margin: "5px 0",
+                  padding: "8px 10px",
+                  background: "#A8A5FF",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                New Scene
+              </button>
+              <button
+                onClick={deleteScene}
+                style={{
+                  margin: "5px 0",
+                  padding: "8px 10px",
+                  background: "#f44336",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Delete Current Scene
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (import.meta.env.DEV) {
       const debugState = loadSavedDebugState();
@@ -503,11 +799,13 @@ const ExcalidrawWrapper = () => {
       ) {
         // don't sync if local state is newer or identical to browser state
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_DATA_STATE)) {
+          console.log("isBrowserStorageStateNewer");
           const localDataState = importFromLocalStorage();
           const username = importUsernameFromLocalStorage();
           setLangCode(getPreferredLanguage());
           excalidrawAPI.updateScene({
-            ...localDataState,
+            elements: localDataState.elements,
+            appState: localDataState.appState,
             storeAction: StoreAction.UPDATE,
           });
           LibraryIndexedDBAdapter.load().then((data) => {
@@ -553,6 +851,7 @@ const ExcalidrawWrapper = () => {
     }, SYNC_BROWSER_TABS_TIMEOUT);
 
     const onUnload = () => {
+      console.log("Flushing Save");
       LocalData.flushSave();
     };
 
@@ -611,12 +910,15 @@ const ExcalidrawWrapper = () => {
     appState: AppState,
     files: BinaryFiles,
   ) => {
-    if (collabAPI?.isCollaborating()) {
-      collabAPI.syncElements(elements);
-    }
+    // if (collabAPI?.isCollaborating()) {
+    //   collabAPI.syncElements(elements);
+    // }
+
+    // console.log("Saving: ", elements);
 
     // this check is redundant, but since this is a hot path, it's best
     // not to evaludate the nested expression every time
+    // console.log("On Change: ", elements);
     if (!LocalData.isSavePaused()) {
       LocalData.save(elements, appState, files, () => {
         if (excalidrawAPI) {
@@ -848,6 +1150,7 @@ const ExcalidrawWrapper = () => {
           );
         }}
       >
+        <Canvases />
         <AppMainMenu
           onCollabDialogOpen={onCollabDialogOpen}
           isCollaborating={isCollaborating}
@@ -882,7 +1185,6 @@ const ExcalidrawWrapper = () => {
         </OverwriteConfirmDialog>
         <AppFooter onChange={() => excalidrawAPI?.refresh()} />
         {excalidrawAPI && <AIComponents excalidrawAPI={excalidrawAPI} />}
-
         <TTDDialogTrigger />
         {isCollaborating && isOffline && (
           <div className="collab-offline-warning">
@@ -899,7 +1201,6 @@ const ExcalidrawWrapper = () => {
         {excalidrawAPI && !isCollabDisabled && (
           <Collab excalidrawAPI={excalidrawAPI} />
         )}
-
         <ShareDialog
           collabAPI={collabAPI}
           onExportToBackend={async () => {
@@ -916,13 +1217,11 @@ const ExcalidrawWrapper = () => {
             }
           }}
         />
-
         {errorMessage && (
           <ErrorDialog onClose={() => setErrorMessage("")}>
             {errorMessage}
           </ErrorDialog>
         )}
-
         <CommandPalette
           customCommandPaletteItems={[
             {

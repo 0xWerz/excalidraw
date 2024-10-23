@@ -8,7 +8,10 @@ import {
   TOOL_TYPE,
 } from "../constants";
 import { showSelectedShapeActions } from "../element";
-import type { NonDeletedExcalidrawElement } from "../element/types";
+import type {
+  CanvasScene,
+  NonDeletedExcalidrawElement,
+} from "../element/types";
 import type { Language } from "../i18n";
 import { t } from "../i18n";
 import { calculateScrollCenter } from "../scene";
@@ -60,6 +63,8 @@ import { LaserPointerButton } from "./LaserPointerButton";
 import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import { actionToggleStats } from "../actions";
+// import { importFromLocalStorage } from "../../excalidraw-app/data/localStorage";
+import { importFromLocalStorage } from "../../../excalidraw-app/data/localStorage";
 
 import "./LayerUI.scss";
 import "./Toolbar.scss";
@@ -92,6 +97,7 @@ const DefaultMainMenu: React.FC<{
   return (
     <MainMenu __fallback>
       <MainMenu.DefaultItems.LoadScene />
+      <MainMenu.DefaultItems.NewCanvas />
       <MainMenu.DefaultItems.SaveToActiveFile />
       {/* FIXME we should to test for this inside the item itself */}
       {UIOptions.canvasActions.export && <MainMenu.DefaultItems.Export />}
