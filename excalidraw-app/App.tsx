@@ -526,9 +526,9 @@ const ExcalidrawWrapper = () => {
       <div
         style={{
           position: "absolute",
-          top: "70px",
-          left: "15px",
-          zIndex: 3,
+          top: "15px",
+          left: "70px",
+          zIndex: 1000,
         }}
       >
         <button
@@ -545,20 +545,22 @@ const ExcalidrawWrapper = () => {
             justifyContent: "center",
           }}
         >
-          <SwatchBook size={18} opacity={0.7} />
+          <SwatchBook size={18} opacity={1} />
         </button>
         {isVisible && (
           <div
             style={{
+              position: "absolute",
               display: "flex",
               flexDirection: "column",
-              background: "#232329",
+              background: editorTheme === "light" ? "#FFFFFF" : "#232329",
               padding: "10px",
               borderRadius: "8px",
               boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
               marginTop: "10px",
-              color: "white",
+              color: editorTheme === "light" ? "#232329" : "white",
               width: "200px",
+              zIndex: 1000,
             }}
             onMouseEnter={handleInteraction}
             onMouseMove={handleInteraction}
@@ -569,6 +571,7 @@ const ExcalidrawWrapper = () => {
                 display: "flex",
                 flexDirection: "column",
                 marginBottom: "10px",
+                zIndex: 1000,
               }}
             >
               {scenes.map((scene) => (
@@ -590,8 +593,8 @@ const ExcalidrawWrapper = () => {
                       autoFocus
                       style={{
                         width: "100%",
-                        background: "#3a3a3f",
-                        color: "white",
+                        background: editorTheme === "light" ? "#ECECF4" : "#3a3a3f",
+                        color: editorTheme === "light" ? "#232329" : "white",
                         border: "1px solid #555",
                         borderRadius: "4px",
                         padding: "5px",
@@ -604,12 +607,12 @@ const ExcalidrawWrapper = () => {
                         padding: "5px 10px",
                         background:
                           localStorage.getItem("canvasId") === scene.id
-                            ? "#3a3a3f"
-                            : "#232329",
+                            ? editorTheme === "light" ? "#ECECF4" : "#3a3a3f"
+                            : editorTheme === "light" ? "#FFFFFF" : "#232329",
                         border: "1px solid #555",
                         borderRadius: "4px",
                         cursor: "pointer",
-                        color: "white",
+                        color: editorTheme === "light" ? "#232329" : "white",
                         width: "100%",
                         textAlign: "left",
                       }}
@@ -619,13 +622,15 @@ const ExcalidrawWrapper = () => {
                   )}
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <button
-                      onClick={() => startEditingSceneName(scene.id, scene.name)}
+                      onClick={() =>
+                        startEditingSceneName(scene.id, scene.name)
+                      }
                       style={{
                         marginLeft: "5px",
                         cursor: "pointer",
                         background: "none",
                         border: "none",
-                        color: "white",
+                        color: editorTheme === "light" ? "#232329" : "white",
                       }}
                     >
                       <svg
@@ -649,7 +654,7 @@ const ExcalidrawWrapper = () => {
                         cursor: "pointer",
                         background: "none",
                         border: "none",
-                        color: "white",
+                        color: editorTheme === "light" ? "#232329" : "white",
                       }}
                     >
                       <svg
