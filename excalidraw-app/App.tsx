@@ -14,6 +14,7 @@ import {
 import { loadFromBlob } from "../packages/excalidraw/data/blob";
 import type {
   CanvasScene,
+  ExcalidrawElement,
   FileId,
   NonDeletedExcalidrawElement,
   OrderedExcalidrawElement,
@@ -402,8 +403,8 @@ const ExcalidrawWrapper = () => {
       setScenes((prevScenes) => {
         const updatedScenes = prevScenes.map((scene) =>
           scene.id === currentCanvasId
-            ? { ...scene, elements: currentElements, appState: currentAppState }
-            : scene,
+            ? { ...scene, elements: currentElements as ExcalidrawElement[], appState: currentAppState }
+            : scene
         );
         const storage = { scenes: updatedScenes };
         localStorage.setItem("excalidraw", JSON.stringify(storage));

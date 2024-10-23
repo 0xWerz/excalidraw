@@ -593,7 +593,7 @@ export const actionNewCanvas = register({
                 ...currentScene,
                 name: canvasName,
                 id: newId,
-                elements: elements,
+                elements: elements as ExcalidrawElement[],
               };
               storage.scenes = storage.scenes.filter(
                 (scene) => scene.id !== currentCanvasId,
