@@ -535,8 +535,8 @@ const ExcalidrawWrapper = () => {
         <button
           onClick={() => setIsVisible(!isVisible)}
           style={{
-            background: "#232329",
-            color: "white",
+            background: editorTheme === "light" ? "#ECECF4" : "#232329",
+            color: editorTheme === "light" ? "#232329" : "white",
             border: "none",
             borderRadius: "0.5rem",
             padding: "10px",
